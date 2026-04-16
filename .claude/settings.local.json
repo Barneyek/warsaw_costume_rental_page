@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv blog:*)",
+      "Bash(mv catalogue:*)",
+      "Bash(mv core:*)",
+      "Bash(mv inquiry:*)",
+      "Bash(mv pages:*)",
+      "Bash(mv warsaw_costume_rental/asgi.py backend/web_app/)",
+      "Bash(mv warsaw_costume_rental/wsgi.py backend/web_app/)",
+      "Bash(mv warsaw_costume_rental/urls.py backend/web_app/)",
+      "Bash(mv warsaw_costume_rental/__init__.py backend/web_app/)",
+      "Bash(mv manage.py backend/)",
+      "Bash(python -m pytest tests/catalogue/test_models.py -v)"
+    ]
+  }
+}

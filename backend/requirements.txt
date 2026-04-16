@@ -1,0 +1,23 @@
+# Core
+django
+psycopg2-binary
+
+# API
+djangorestframework
+django-filter
+django-cors-headers
+drf-spectacular
+
+# Zdjęcia
+Pillow
+django-imagekit
+
+# i18n (tłumaczenia modeli)
+django-modeltranslation
+
+# Zmienne środowiskowe
+python-dotenv
+
+# Testy
+pytest
+pytest-django
