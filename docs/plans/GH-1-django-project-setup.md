@@ -291,7 +291,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.4.1: Insert `modeltranslation` at position [0] in `INSTALLED_APPS`
 
-- [ ] **Action:** Edit `backend/web_app/settings/base.py`. Restructure `INSTALLED_APPS` to:
+- [x] **Action:** Edit `backend/web_app/settings/base.py`. Restructure `INSTALLED_APPS` to:
   ```python
   INSTALLED_APPS = [
       'modeltranslation',             # MUST be before django.contrib.admin
@@ -317,7 +317,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
   **Why `modeltranslation` must be first:** `django-modeltranslation` monkey-patches `django.contrib.admin` to add translation tabs to ModelAdmin forms. If `admin` is imported before `modeltranslation`, the patch never applies and the admin UI will show only the base (untranslated) fields even after `translation.py` files are added. This is a silent failure — everything appears to work but translation fields are absent from the admin interface.
 
-- [ ] **Validate:**
+- [x] **Validate:**
   ```bash
   cd backend && python manage.py shell -c "
   from django.conf import settings
@@ -327,17 +327,17 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   print('OK' if apps.index('modeltranslation') < apps.index('django.contrib.admin') else 'FAIL — wrong order')
   "
   ```
-- [ ] **Expected:**
+- [x] **Expected:**
   ```
   modeltranslation index: 0
   admin index: 1
   OK
   ```
-- [ ] **On failure:** Check that you edited `base.py` (not `dev.py`). Confirm `modeltranslation` is the very first entry in the list.
+- [x] **On failure:** Check that you edited `base.py` (not `dev.py`). Confirm `modeltranslation` is the very first entry in the list.
 
 #### Step 5.4.2: Verify all 5 local apps are registered
 
-- [ ] **Action:**
+- [x] **Action:**
   ```bash
   cd backend && python manage.py shell -c "
   from django.apps import apps
@@ -345,8 +345,8 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   print(sorted(local))
   "
   ```
-- [ ] **Expected:** `['src.blog', 'src.catalogue', 'src.core', 'src.inquiry', 'src.pages']`
-- [ ] **On failure:** Open `base.py` and confirm all 5 `src.X` entries are present in `INSTALLED_APPS`. Confirm each app directory has an `apps.py` with `name = 'src.X'` matching the dotted path.
+- [x] **Expected:** `['src.blog', 'src.catalogue', 'src.core', 'src.inquiry', 'src.pages']`
+- [x] **On failure:** Open `base.py` and confirm all 5 `src.X` entries are present in `INSTALLED_APPS`. Confirm each app directory has an `apps.py` with `name = 'src.X'` matching the dotted path.
 
 ---
 
@@ -944,6 +944,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.1 | Added load_dotenv() to manage.py — Path resolves to project root .env; validated via Docker (DB_NAME=django_db printed correctly) | No local venv — all validation done via Docker | docker-compose environment vars pre-populate os.environ so load_dotenv is safe no-op in container |
 | 2026-04-26 | 5.2 | Added SECRET_KEY and DB_HOST to .env; changed base.py to os.environ['SECRET_KEY']; added SECRET_KEY=${SECRET_KEY} to docker-compose.yml api environment | docker-compose.yml needed SECRET_KEY added (not in original plan scope — necessary implication) | Validated via Docker: settings.SECRET_KEY[:30] = django-insecure-d67553cq8)p5vc |
 | 2026-04-26 | 5.3 | Created .env.example with all 5 keys; verified .gitignore has .env (line 47) and !.env.example (line 52) | — | — |
+| 2026-04-26 | 5.4 | Added 'modeltranslation' at index 0 in INSTALLED_APPS; validated index=0 admin=1 OK; all 5 src.* apps confirmed | — | — |
 
 ---
 
