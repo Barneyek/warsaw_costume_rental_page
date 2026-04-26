@@ -76,3 +76,6 @@ temp/
 # ==============================
 Thumbs.db
 Desktop.ini
+
+# Generated OpenAPI schema (regenerate via `manage.py spectacular`)
+schema.yaml

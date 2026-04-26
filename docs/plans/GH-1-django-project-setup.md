@@ -704,12 +704,12 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.9.0: Add schema.yaml to .gitignore PRZED uruchomieniem spectacular
 
-- Action: Edit .gitignore, add line:
+- [x] Action: Edit .gitignore, add line:
   # Generated OpenAPI schema (regenerate via `manage.py spectacular`)
   schema.yaml
-- Validate: grep -c "^schema.yaml$" .gitignore
-- Expected: 1
-- On failure: Add line manually
+- [x] Validate: grep -c "^schema.yaml$" .gitignore
+- [x] Expected: 1 (line 81 of .gitignore)
+- [x] On failure: Add line manually
 
 #### Step 5.9.1: `manage.py check`
 
@@ -949,6 +949,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.6 | Added SERVE_INCLUDE_SCHEMA=False and COMPONENT_SPLIT_REQUEST=True to SPECTACULAR_SETTINGS | — | Validated via Docker — both values correct |
 | 2026-04-26 | 5.7 | Replaced CORS_ALLOW_ALL_ORIGINS with CORS_ALLOWED_ORIGINS scoped to localhost:5173; removed fallback defaults from DB env vars (except DB_HOST) | — | Validated: CORS_ALLOW_ALL_ORIGINS=NOT SET |
 | 2026-04-26 | 5.8 | Created test_settings_smoke.py (16 tests); added load_dotenv() to test.py for SECRET_KEY availability during pytest | — | **16 passed, 0 failed** via Docker with DJANGO_SETTINGS_MODULE=web_app.settings.test |
+| 2026-04-26 | 5.9.0 | Added schema.yaml to .gitignore (line 81) | — | — |
 
 ---
 
