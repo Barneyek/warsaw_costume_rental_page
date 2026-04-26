@@ -411,7 +411,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.6.1: Add `COMPONENT_SPLIT_REQUEST` and `SERVE_INCLUDE_SCHEMA` to `SPECTACULAR_SETTINGS`
 
-- [ ] **Action:** Edit `backend/web_app/settings/base.py`. Replace the existing `SPECTACULAR_SETTINGS` block:
+- [x] **Action:** Edit `backend/web_app/settings/base.py`. Replace the existing `SPECTACULAR_SETTINGS` block:
 
   ```python
   # Before:
@@ -435,7 +435,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
   **Why `SERVE_INCLUDE_SCHEMA: False`:** Prevents the `/api/schema/` endpoint itself from appearing as an operation in the generated schema. Without this, the schema describes how to fetch the schema, which is recursive noise in the orval-generated client.
 
-- [ ] **Validate:**
+- [x] **Validate:**
   ```bash
   cd backend && python manage.py shell -c "
   from django.conf import settings
@@ -444,12 +444,12 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   print('SERVE_INCLUDE_SCHEMA:', s.get('SERVE_INCLUDE_SCHEMA'))
   "
   ```
-- [ ] **Expected:**
+- [x] **Expected:**
   ```
   COMPONENT_SPLIT_REQUEST: True
   SERVE_INCLUDE_SCHEMA: False
   ```
-- [ ] **On failure:** Confirm you edited `base.py` and not `dev.py`. Check for syntax errors (missing comma after `'VERSION': '1.0.0',`).
+- [x] **On failure:** Confirm you edited `base.py` and not `dev.py`. Check for syntax errors (missing comma after `'VERSION': '1.0.0',`).
 
 ---
 
@@ -946,6 +946,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.3 | Created .env.example with all 5 keys; verified .gitignore has .env (line 47) and !.env.example (line 52) | — | — |
 | 2026-04-26 | 5.4 | Added 'modeltranslation' at index 0 in INSTALLED_APPS; validated index=0 admin=1 OK; all 5 src.* apps confirmed | — | — |
 | 2026-04-26 | 5.5 | Fixed LANGUAGE_CODE pl-pl→pl; added LANGUAGES, MODELTRANSLATION_DEFAULT_LANGUAGE, MODELTRANSLATION_FALLBACK_LANGUAGES; gettext_lazy import in settings | — | LANGUAGES rendered as polski/angielski in Docker Polish locale — correct behavior |
+| 2026-04-26 | 5.6 | Added SERVE_INCLUDE_SCHEMA=False and COMPONENT_SPLIT_REQUEST=True to SPECTACULAR_SETTINGS | — | Validated via Docker — both values correct |
 
 ---
 
