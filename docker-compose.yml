@@ -22,6 +22,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_HOST=db
+      - SECRET_KEY=${SECRET_KEY}
       - DJANGO_SETTINGS_MODULE=web_app.settings.dev
     depends_on:
       - db

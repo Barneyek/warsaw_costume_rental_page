@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/
 
-SECRET_KEY = 'django-insecure-d67553cq8)p5vc#1#9*_b_n2i+ye)9_no%@*_*6%e%u#tr(4d('
+SECRET_KEY = os.environ['SECRET_KEY']
 
 ALLOWED_HOSTS = []
 

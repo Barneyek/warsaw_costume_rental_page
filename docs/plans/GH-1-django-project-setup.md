@@ -183,7 +183,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.2.1: Add `SECRET_KEY` (and `DB_HOST`) to the real `.env`
 
-- [ ] **Action:** Edit `d:\Praca\warsaw_costume_rental\.env`. Add two keys so the file becomes:
+- [x] **Action:** Edit `d:\Praca\warsaw_costume_rental\.env`. Add two keys so the file becomes:
   ```dotenv
   DB_NAME=django_db
   DB_USER=admin
@@ -193,13 +193,13 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   ```
   (`DB_HOST=db` matches the Docker service name. When running `manage.py` locally without Docker, this value is unused — the DB call fails on connection, not on missing env var.)
 
-- [ ] **Validate:** `grep -c "SECRET_KEY" d:/Praca/warsaw_costume_rental/.env`
-- [ ] **Expected:** `1`
-- [ ] **On failure:** Open `.env` in editor and add the line manually. Ensure no trailing spaces or quotes around the value.
+- [x] **Validate:** `grep -c "SECRET_KEY" d:/Praca/warsaw_costume_rental/.env`
+- [x] **Expected:** `1`
+- [x] **On failure:** Open `.env` in editor and add the line manually. Ensure no trailing spaces or quotes around the value.
 
 #### Step 5.2.2: Update `base.py` to load `SECRET_KEY` from env
 
-- [ ] **Action:** Edit `backend/web_app/settings/base.py`:
+- [x] **Action:** Edit `backend/web_app/settings/base.py`:
   1. Add `import os` at the top (currently missing).
   2. Replace the hardcoded `SECRET_KEY` line with `os.environ['SECRET_KEY']`.
 
@@ -223,7 +223,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
   **Why `os.environ['SECRET_KEY']` and not `.get('SECRET_KEY')`:** Using `[]` raises `KeyError` immediately at startup if the key is missing. This surfaces the configuration error early with a clear message. A silent `None` or fallback default would let Django start in a broken state.
 
-- [ ] **Validate:** From `backend/` (venv active), run:
+- [x] **Validate:** From `backend/` (venv active), run:
   ```bash
   python -c "
   import os, sys
@@ -238,8 +238,8 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   print(settings.SECRET_KEY[:30])
   "
   ```
-- [ ] **Expected:** Prints the first 30 characters of the key: `django-insecure-d67553cq8)p5v`
-- [ ] **On failure:** Confirm Step 5.1.1 is complete (dotenv loads before Django). Confirm `.env` has `SECRET_KEY=...` (Step 5.2.1). If you see `KeyError: 'SECRET_KEY'` — dotenv is not loading the file; debug the path.
+- [x] **Expected:** Prints the first 30 characters of the key: `django-insecure-d67553cq8)p5v`
+- [x] **On failure:** Confirm Step 5.1.1 is complete (dotenv loads before Django). Confirm `.env` has `SECRET_KEY=...` (Step 5.2.1). If you see `KeyError: 'SECRET_KEY'` — dotenv is not loading the file; debug the path.
 
 ---
 
@@ -942,6 +942,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-23 | Plan v1 | First plan written | drf_spectacular open question | Resolved in v2 |
 | 2026-04-23 | Plan v2 | Plan regenerated with new "drf-spectacular is intentional" architectural decision; added LANGUAGES, MODELTRANSLATION_*, COMPONENT_SPLIT_REQUEST, scoped CORS, SECRET_KEY loading, 16 smoke tests | — | This document |
 | 2026-04-26 | 5.1 | Added load_dotenv() to manage.py — Path resolves to project root .env; validated via Docker (DB_NAME=django_db printed correctly) | No local venv — all validation done via Docker | docker-compose environment vars pre-populate os.environ so load_dotenv is safe no-op in container |
+| 2026-04-26 | 5.2 | Added SECRET_KEY and DB_HOST to .env; changed base.py to os.environ['SECRET_KEY']; added SECRET_KEY=${SECRET_KEY} to docker-compose.yml api environment | docker-compose.yml needed SECRET_KEY added (not in original plan scope — necessary implication) | Validated via Docker: settings.SECRET_KEY[:30] = django-insecure-d67553cq8)p5vc |
 
 ---
 
