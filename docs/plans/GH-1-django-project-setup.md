@@ -713,21 +713,21 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.9.1: `manage.py check`
 
-- [ ] **Action:** `cd backend && python manage.py check`
-- [ ] **Validate:** Read terminal output.
-- [ ] **Expected:** `System check identified no issues (0 silenced).`
-- [ ] **On failure:** Read the full error. Common causes: misspelled app name in `INSTALLED_APPS`, missing `apps.py` `name` field, bad import in `models.py`. Fix the reported issue before proceeding.
+- [x] **Action:** `cd backend && python manage.py check`
+- [x] **Validate:** Read terminal output.
+- [x] **Expected:** `System check identified no issues (0 silenced).`
+- [x] **On failure:** Read the full error. Common causes: misspelled app name in `INSTALLED_APPS`, missing `apps.py` `name` field, bad import in `models.py`. Fix the reported issue before proceeding.
 
 #### Step 5.9.2: Apply migrations against dev Postgres
 
-- [ ] **Action:**
+- [x] **Action:**
   ```bash
   docker compose up db -d
   # Wait 3-5 seconds for Postgres to be ready, then:
   cd backend && python manage.py migrate
   ```
-- [ ] **Validate:** `cd backend && python manage.py showmigrations`
-- [ ] **Expected:** All entries show `[X]` (applied). This includes Django's built-in migrations (`admin`, `auth`, `contenttypes`, `sessions`) and all 5 local app migrations.
+- [x] **Validate:** `cd backend && python manage.py showmigrations`
+- [x] **Expected:** All entries show `[X]` (applied). This includes Django's built-in migrations (`admin`, `auth`, `contenttypes`, `sessions`) and all 5 local app migrations.
   ```
   admin
    [X] 0001_initial
@@ -739,53 +739,56 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
    [X] 0002_...
   ...
   ```
-- [ ] **On failure:** `OperationalError: could not connect to server` → DB not running; confirm `docker compose up db -d` succeeded. `KeyError: 'DB_NAME'` → `.env` not loaded; revisit Step 5.1.1. Migration file syntax error → check the failing app's migration file.
+- [x] **On failure:** `OperationalError: could not connect to server` → DB not running; confirm `docker compose up db -d` succeeded. `KeyError: 'DB_NAME'` → `.env` not loaded; revisit Step 5.1.1. Migration file syntax error → check the failing app's migration file.
 
 #### Step 5.9.3: `runserver` starts without errors
 
-- [ ] **Action:** `cd backend && python manage.py runserver 0.0.0.0:8000`
-- [ ] **Validate:** Watch terminal for 5 seconds. Look for startup banner.
-- [ ] **Expected:**
+- [x] **Action:** `cd backend && python manage.py runserver 0.0.0.0:8000`
+- [x] **Validate:** Watch terminal for 5 seconds. Look for startup banner.
+- [x] **Expected:**
   ```
   Django version X.X.X, using settings 'web_app.settings.dev'
   Starting development server at http://0.0.0.0:8000/
   Quit the server with CTRL-BREAK.
   ```
   No `ImproperlyConfigured`, no `ImportError`, no Python traceback.
-- [ ] **On failure:** Read the full traceback. Most common at this stage: `KeyError: 'SECRET_KEY'` (env not loaded — Step 5.1.1), `OperationalError` (DB not running — Step 5.9.2), `ModuleNotFoundError` (package not installed — run `pip install -r requirements.txt`).
+- [x] **On failure:** Read the full traceback. Most common at this stage: `KeyError: 'SECRET_KEY'` (env not loaded — Step 5.1.1), `OperationalError` (DB not running — Step 5.9.2), `ModuleNotFoundError` (package not installed — run `pip install -r requirements.txt`).
 
 #### Step 5.9.4: Verify admin and OpenAPI endpoints
 
 Keep `runserver` running from Step 5.9.3. Open browser and verify each URL:
 
-- [ ] **`http://localhost:8000/admin/`**
+- [x] **`http://localhost:8000/admin/`**
   - **Expected:** Django admin login page renders. No 500. No template error.
   - **On failure:** Check `TEMPLATES` config in `base.py` (`APP_DIRS: True` required). If `ProgrammingError` → migrations not applied (Step 5.9.2 incomplete).
 
-- [ ] **`http://localhost:8000/api/schema/`**
+- [x] **`http://localhost:8000/api/schema/`**
   - **Expected:** YAML or JSON response (OpenAPI 3.0 schema). Status 200. The document contains the API title "Warsaw Costume Rental API".
   - **On failure:** 404 → confirm `SpectacularAPIView` path in `urls.py`. 500 → check `drf_spectacular` is in `INSTALLED_APPS`.
 
-- [ ] **`http://localhost:8000/api/docs/`**
+- [x] **`http://localhost:8000/api/docs/`**
   - **Expected:** Swagger UI page renders in browser. The page title shows "Warsaw Costume Rental API". No console errors about schema loading.
   - **On failure:** 404 → confirm `SpectacularSwaggerView` path in `urls.py`. Blank page with console errors → static files issue (acceptable for now in dev since static files are served by `runserver`; run `manage.py collectstatic` if needed).
 
 #### Step 5.9.5: Generate schema file with zero warnings
 
-- [ ] **Action:** Stop `runserver`. Then:
+- [x] **Action:** Stop `runserver`. Then:
   ```bash
   cd backend && python manage.py spectacular --file schema.yaml --validate
   ```
-- [ ] **Validate:** Read terminal output.
-- [ ] **Expected:**
+- [x] **Validate:** Read terminal output.
+- [x] **Expected:**
   ```
   No issues found, schema is valid.
   ```
   File `backend/schema.yaml` is created. Zero lines beginning with `Warning:`.
-- [ ] **On failure:** Read each warning carefully.
+  **Note (drf-spectacular 0.29.0):** When there are zero warnings/errors, the command exits silently with code 0. This is the success path.
+- [x] **On failure:** Read each warning carefully.
   - `Warning: ... encountered unknown field` → a serializer field type is not supported by spectacular; add a `@extend_schema_field` decorator to the serializer field.
   - `Warning: could not resolve serializer` → a view's serializer_class is missing or set dynamically without annotation; add `@extend_schema(responses=MySerializer)` to the view.
   - These warnings are non-blocking for issue #1 (no real serializers exist yet), but any warnings from the scaffold itself (schema/docs views) must be zero.
+
+  **Fixes applied:** Initial scaffold had 2 warnings (`get_image_url`, `get_main_image`) and 4 errors (`InitView`). Fixed by adding `@extend_schema_field` to both SerializerMethodFields and `@extend_schema(responses=inline_serializer(...))` to InitView.get().
 
   **Note:** Add `schema.yaml` to `.gitignore` since it is a generated artifact — it should be regenerated from source, not committed.
 
@@ -950,6 +953,11 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.7 | Replaced CORS_ALLOW_ALL_ORIGINS with CORS_ALLOWED_ORIGINS scoped to localhost:5173; removed fallback defaults from DB env vars (except DB_HOST) | — | Validated: CORS_ALLOW_ALL_ORIGINS=NOT SET |
 | 2026-04-26 | 5.8 | Created test_settings_smoke.py (16 tests); added load_dotenv() to test.py for SECRET_KEY availability during pytest | — | **16 passed, 0 failed** via Docker with DJANGO_SETTINGS_MODULE=web_app.settings.test |
 | 2026-04-26 | 5.9.0 | Added schema.yaml to .gitignore (line 81) | — | — |
+| 2026-04-26 | 5.9.1 | manage.py check → "System check identified no issues (0 silenced)" | — | Via Docker --no-deps |
+| 2026-04-26 | 5.9.2 | Migrations already applied from previous session; showmigrations shows all [X] | — | — |
+| 2026-04-26 | 5.9.3 | runserver via Docker api service; Django 6.0.4 started at 0.0.0.0:8000, no traceback | — | — |
+| 2026-04-26 | 5.9.4 | admin=200, /api/schema/=200 (openapi 3.0.3 + Warsaw Costume Rental API title), /api/docs/=200 (swagger UI) | — | Checked via Invoke-WebRequest from host |
+| 2026-04-26 | 5.9.5 | spectacular --validate: exit 0, no warnings; schema.yaml created; gitignored. Required fixes: @extend_schema_field on get_image_url + get_main_image; @extend_schema on InitView.get() | Initial scaffold had 2 warnings + 4 errors — fixed as part of end-to-end validation | drf-spectacular 0.29.0 exits silently on success (no "No issues found" message) |
 
 ---
 

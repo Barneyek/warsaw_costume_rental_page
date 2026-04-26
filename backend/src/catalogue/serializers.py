@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from .models import Category, Tag, Size, Costume, CostumeImage
 
 
@@ -27,7 +28,8 @@ class CostumeImageSerializer(serializers.ModelSerializer):
         model = CostumeImage
         fields = ['id', 'image_url', 'is_main']
 
-    def get_image_url(self, obj): # "a oto jak je liczę"
+    @extend_schema_field(serializers.URLField(allow_null=True))
+    def get_image_url(self, obj):
         request = self.context.get('request')
         if obj.image and request:
             return request.build_absolute_uri(obj.image.url)
@@ -44,6 +46,7 @@ class CostumeListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'price', 'deposit',
                   'is_available', 'categories', 'main_image']
 
+    @extend_schema_field(CostumeImageSerializer)
     def get_main_image(self, obj):
         main = obj.images.filter(is_main=True).first()
         if main:
