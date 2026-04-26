@@ -457,7 +457,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.7.1: Replace `CORS_ALLOW_ALL_ORIGINS` with scoped `CORS_ALLOWED_ORIGINS` in `dev.py`
 
-- [ ] **Action:** Edit `backend/web_app/settings/dev.py`. Also remove the fallback defaults from `os.environ.get()` so a missing `.env` fails loudly:
+- [x] **Action:** Edit `backend/web_app/settings/dev.py`. Also remove the fallback defaults from `os.environ.get()` so a missing `.env` fails loudly:
 
   ```python
   import os
@@ -486,7 +486,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
   **Implication for frontend work:** The Vite dev server MUST run on port 5173 (the default). If you ever need to use a different port, add it to this list before starting `vite`. Requests from any other origin will be blocked by the browser's CORS preflight — Postman and curl bypass this restriction (they don't enforce CORS).
 
-- [ ] **Validate:**
+- [x] **Validate:**
   ```bash
   cd backend && python manage.py shell -c "
   from django.conf import settings
@@ -494,12 +494,12 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   print('CORS_ALLOW_ALL_ORIGINS:', getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', 'NOT SET'))
   "
   ```
-- [ ] **Expected:**
+- [x] **Expected:**
   ```
   CORS_ALLOWED_ORIGINS: ['http://localhost:5173', 'http://127.0.0.1:5173']
   CORS_ALLOW_ALL_ORIGINS: NOT SET
   ```
-- [ ] **On failure:** Confirm `dev.py` is being used — check `DJANGO_SETTINGS_MODULE` env var. Confirm `CORS_ALLOW_ALL_ORIGINS` line was deleted (not just commented). If `KeyError: 'DB_NAME'` appears, the `.env` is not loading — revisit Step 5.1.1.
+- [x] **On failure:** Confirm `dev.py` is being used — check `DJANGO_SETTINGS_MODULE` env var. Confirm `CORS_ALLOW_ALL_ORIGINS` line was deleted (not just commented). If `KeyError: 'DB_NAME'` appears, the `.env` is not loading — revisit Step 5.1.1.
 
 ---
 
@@ -947,6 +947,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.4 | Added 'modeltranslation' at index 0 in INSTALLED_APPS; validated index=0 admin=1 OK; all 5 src.* apps confirmed | — | — |
 | 2026-04-26 | 5.5 | Fixed LANGUAGE_CODE pl-pl→pl; added LANGUAGES, MODELTRANSLATION_DEFAULT_LANGUAGE, MODELTRANSLATION_FALLBACK_LANGUAGES; gettext_lazy import in settings | — | LANGUAGES rendered as polski/angielski in Docker Polish locale — correct behavior |
 | 2026-04-26 | 5.6 | Added SERVE_INCLUDE_SCHEMA=False and COMPONENT_SPLIT_REQUEST=True to SPECTACULAR_SETTINGS | — | Validated via Docker — both values correct |
+| 2026-04-26 | 5.7 | Replaced CORS_ALLOW_ALL_ORIGINS with CORS_ALLOWED_ORIGINS scoped to localhost:5173; removed fallback defaults from DB env vars (except DB_HOST) | — | Validated: CORS_ALLOW_ALL_ORIGINS=NOT SET |
 
 ---
 
