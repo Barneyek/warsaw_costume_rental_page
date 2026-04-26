@@ -1,11 +1,11 @@
 # Plan: [GH-1] Initialize Django project structure with split settings
 
 **Issue:** https://github.com/Barneyek/warsaw_costume_rental_page/issues/1
-**Status:** 🟡 In Progress
+**Status:** 🟢 Done
 **Created:** 2026-04-23
 **Last updated:** 2026-04-23
 **Estimated effort:** M (1-4h)
-**Actual effort:** _fill at the end_
+**Actual effort:** M (~2h implementation + validation)
 
 ---
 
@@ -990,7 +990,7 @@ python manage.py spectacular --file schema.yaml --validate
 
 ## 12. Post-mortem (wypełnij po zakończeniu)
 
-**What went well:** _fill after completion_
-**What went wrong:** _fill after completion_
-**Lessons learned:** _add to `docs/lessons-learned.md`_
-**Follow-up issues:** _any discoveries that need a new issue — e.g., blog/pages translation scope decision (§9)_
+**What went well:** All 16 smoke tests passed on first run after implementing all settings changes. Plan was clear and step-by-step structure made progress easy to track.
+**What went wrong:** (1) No local venv existed — validation adapted to Docker throughout. (2) Initial scaffold had 2 warnings + 4 errors in spectacular that needed fixing (missing @extend_schema_field and @extend_schema annotations). (3) drf-spectacular 0.29.0 exits silently on success — plan expected "No issues found" text. (4) SECRET_KEY missing from docker-compose.yml api environment — added as part of step 5.2.
+**Lessons learned:** See docs/lessons-learned.md — add: always annotate SerializerMethodFields with @extend_schema_field; always annotate bare APIViews with @extend_schema.
+**Follow-up issues:** §9 question on blog/pages translation scope (issue #5/#6). Docker venv pre-condition should be clarified in future plans.
