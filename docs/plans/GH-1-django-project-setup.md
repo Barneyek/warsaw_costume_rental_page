@@ -507,7 +507,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.8.1: Create `backend/tests/test_settings_smoke.py`
 
-- [ ] **Action:** Create `backend/tests/test_settings_smoke.py`:
+- [x] **Action:** Create `backend/tests/test_settings_smoke.py`:
 
   ```python
   import pytest
@@ -629,11 +629,11 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
           assert cursor.fetchone() == (1,)
   ```
 
-- [ ] **Validate:**
+- [x] **Validate:**
   ```bash
   cd backend && pytest tests/test_settings_smoke.py -v
   ```
-- [ ] **Expected:**
+- [x] **Expected:**
   ```
   tests/test_settings_smoke.py::test_installed_apps_contains_all_local_apps PASSED
   tests/test_settings_smoke.py::test_modeltranslation_before_admin PASSED
@@ -655,7 +655,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   16 passed in X.XXs
   ```
   Tests use `test.py` settings (SQLite in-memory) — no Docker needed for the test suite.
-- [ ] **On failure — per test:**
+- [x] **On failure — per test:**
   - `test_modeltranslation_before_admin` → Step 5.4.1 incomplete.
   - `test_language_code_matches_languages` → `LANGUAGE_CODE` still `'pl-pl'`; fix Step 5.5.1.
   - `test_spectacular_component_split_request` → Step 5.6.1 incomplete.
@@ -667,7 +667,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 **Context:** pytest invokes `web_app.settings.test` directly (per `pytest.ini`). It does NOT call `manage.py`, so `load_dotenv()` from Step 5.1.1 does NOT run during test collection. If `base.py` has `SECRET_KEY = os.environ['SECRET_KEY']` and the env var is not set, pytest will crash on import.
 
-- [ ] **Action:** Add `load_dotenv()` to the top of `backend/web_app/settings/test.py` (before `from .base import *`):
+- [x] **Action:** Add `load_dotenv()` to the top of `backend/web_app/settings/test.py` (before `from .base import *`):
 
   ```python
   from pathlib import Path
@@ -691,12 +691,12 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
   **Path resolution:** `Path(__file__).resolve()` = `backend/web_app/settings/test.py`. Three `.parent` calls → `backend/`. Four `.parent` calls → project root. `/ '.env'` → project root `.env`. ✅
 
-- [ ] **Validate:**
+- [x] **Validate:**
   ```bash
   cd backend && pytest tests/test_settings_smoke.py::test_secret_key_is_set_and_not_empty -v
   ```
-- [ ] **Expected:** `PASSED`
-- [ ] **On failure:** Print the resolved path to confirm it: `python -c "from pathlib import Path; p = Path('web_app/settings/test.py').resolve(); print(p.parents[3] / '.env')"`. Should point to the project root `.env`.
+- [x] **Expected:** `PASSED`
+- [x] **On failure:** Print the resolved path to confirm it: `python -c "from pathlib import Path; p = Path('web_app/settings/test.py').resolve(); print(p.parents[3] / '.env')"`. Should point to the project root `.env`.
 
 ---
 
@@ -948,6 +948,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.5 | Fixed LANGUAGE_CODE pl-pl→pl; added LANGUAGES, MODELTRANSLATION_DEFAULT_LANGUAGE, MODELTRANSLATION_FALLBACK_LANGUAGES; gettext_lazy import in settings | — | LANGUAGES rendered as polski/angielski in Docker Polish locale — correct behavior |
 | 2026-04-26 | 5.6 | Added SERVE_INCLUDE_SCHEMA=False and COMPONENT_SPLIT_REQUEST=True to SPECTACULAR_SETTINGS | — | Validated via Docker — both values correct |
 | 2026-04-26 | 5.7 | Replaced CORS_ALLOW_ALL_ORIGINS with CORS_ALLOWED_ORIGINS scoped to localhost:5173; removed fallback defaults from DB env vars (except DB_HOST) | — | Validated: CORS_ALLOW_ALL_ORIGINS=NOT SET |
+| 2026-04-26 | 5.8 | Created test_settings_smoke.py (16 tests); added load_dotenv() to test.py for SECRET_KEY availability during pytest | — | **16 passed, 0 failed** via Docker with DJANGO_SETTINGS_MODULE=web_app.settings.test |
 
 ---
 
