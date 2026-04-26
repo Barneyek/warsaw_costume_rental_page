@@ -247,7 +247,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.3.1: Create `.env.example` at project root
 
-- [ ] **Action:** Create `d:\Praca\warsaw_costume_rental\.env.example` with the following content:
+- [x] **Action:** Create `d:\Praca\warsaw_costume_rental\.env.example` with the following content:
   ```dotenv
   # ================================================
   # Warsaw Costume Rental — environment template
@@ -266,24 +266,24 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   SECRET_KEY=your-secret-key-here
   ```
 
-- [ ] **Validate:** `cat d:/Praca/warsaw_costume_rental/.env.example`
-- [ ] **Expected:** File exists and contains all 5 keys: `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_HOST`, `SECRET_KEY`.
-- [ ] **On failure:** Create the file manually. Ensure the filename is exactly `.env.example` (no `.txt` suffix, leading dot required).
+- [x] **Validate:** `cat d:/Praca/warsaw_costume_rental/.env.example`
+- [x] **Expected:** File exists and contains all 5 keys: `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_HOST`, `SECRET_KEY`.
+- [x] **On failure:** Create the file manually. Ensure the filename is exactly `.env.example` (no `.txt` suffix, leading dot required).
 
 #### Step 5.3.2: Verify `.gitignore` rules are correct
 
-- [ ] **Action:** Read `.gitignore` and confirm the two required lines exist.
-- [ ] **Validate:**
+- [x] **Action:** Read `.gitignore` and confirm the two required lines exist.
+- [x] **Validate:**
   ```bash
   grep -n "\.env" d:/Praca/warsaw_costume_rental/.gitignore
   ```
-- [ ] **Expected:** Output contains:
+- [x] **Expected:** Output contains:
   ```
   47:.env
   52:!.env.example
   ```
   (Line numbers may vary.) The `.env` line ignores the real secrets file. The `!.env.example` line un-ignores the template so it IS committed. Both must be present.
-- [ ] **On failure:** If `.env` line is missing — add it under the Environment & secrets section. If `!.env.example` is missing — add it on the next line after `.env`.
+- [x] **On failure:** If `.env` line is missing — add it under the Environment & secrets section. If `!.env.example` is missing — add it on the next line after `.env`.
 
 ---
 
@@ -943,6 +943,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-23 | Plan v2 | Plan regenerated with new "drf-spectacular is intentional" architectural decision; added LANGUAGES, MODELTRANSLATION_*, COMPONENT_SPLIT_REQUEST, scoped CORS, SECRET_KEY loading, 16 smoke tests | — | This document |
 | 2026-04-26 | 5.1 | Added load_dotenv() to manage.py — Path resolves to project root .env; validated via Docker (DB_NAME=django_db printed correctly) | No local venv — all validation done via Docker | docker-compose environment vars pre-populate os.environ so load_dotenv is safe no-op in container |
 | 2026-04-26 | 5.2 | Added SECRET_KEY and DB_HOST to .env; changed base.py to os.environ['SECRET_KEY']; added SECRET_KEY=${SECRET_KEY} to docker-compose.yml api environment | docker-compose.yml needed SECRET_KEY added (not in original plan scope — necessary implication) | Validated via Docker: settings.SECRET_KEY[:30] = django-insecure-d67553cq8)p5vc |
+| 2026-04-26 | 5.3 | Created .env.example with all 5 keys; verified .gitignore has .env (line 47) and !.env.example (line 52) | — | — |
 
 ---
 
