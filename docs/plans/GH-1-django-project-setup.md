@@ -354,7 +354,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
 #### Step 5.5.1: Add `LANGUAGES`, `LANGUAGE_CODE`, and `MODELTRANSLATION_*` to `base.py`
 
-- [ ] **Action:** Edit `backend/web_app/settings/base.py`. Replace the existing i18n block and add `modeltranslation` settings:
+- [x] **Action:** Edit `backend/web_app/settings/base.py`. Replace the existing i18n block and add `modeltranslation` settings:
 
   ```python
   # Before:
@@ -385,7 +385,7 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
 
   **Why import `gettext_lazy`:** `LANGUAGES` values must be lazy-translated strings so they render correctly in the admin locale switcher. The `_()` wrapper enables this.
 
-- [ ] **Validate:**
+- [x] **Validate:**
   ```bash
   cd backend && python manage.py shell -c "
   from django.conf import settings
@@ -395,15 +395,15 @@ All must print a `Version:` line. If any show `not found` — run `pip install -
   print('FALLBACK:', settings.MODELTRANSLATION_FALLBACK_LANGUAGES)
   "
   ```
-- [ ] **Expected:**
+- [x] **Expected:**
   ```
   LANGUAGE_CODE: pl
   LANGUAGES: [('pl', 'Polish'), ('en', 'English')]
   DEFAULT_LANG: pl
   FALLBACK: ('pl',)
   ```
-  (The `_('Polish')` lazy string renders as `'Polish'` in the shell.)
-- [ ] **On failure:** Confirm `from django.utils.translation import gettext_lazy as _` is at the top of `base.py`. Confirm `LANGUAGE_CODE = 'pl'` (not `'pl-pl'`). If `ModuleNotFoundError: No module named 'modeltranslation'` — run `pip install django-modeltranslation`.
+  (The `_('Polish')` lazy string renders as `'Polish'` in the shell — or `'polski'`/`'angielski'` in a Polish-locale Docker env. Both are correct.)
+- [x] **On failure:** Confirm `from django.utils.translation import gettext_lazy as _` is at the top of `base.py`. Confirm `LANGUAGE_CODE = 'pl'` (not `'pl-pl'`). If `ModuleNotFoundError: No module named 'modeltranslation'` — run `pip install django-modeltranslation`.
 
 ---
 
@@ -945,6 +945,7 @@ python manage.py spectacular --file schema.yaml --validate
 | 2026-04-26 | 5.2 | Added SECRET_KEY and DB_HOST to .env; changed base.py to os.environ['SECRET_KEY']; added SECRET_KEY=${SECRET_KEY} to docker-compose.yml api environment | docker-compose.yml needed SECRET_KEY added (not in original plan scope — necessary implication) | Validated via Docker: settings.SECRET_KEY[:30] = django-insecure-d67553cq8)p5vc |
 | 2026-04-26 | 5.3 | Created .env.example with all 5 keys; verified .gitignore has .env (line 47) and !.env.example (line 52) | — | — |
 | 2026-04-26 | 5.4 | Added 'modeltranslation' at index 0 in INSTALLED_APPS; validated index=0 admin=1 OK; all 5 src.* apps confirmed | — | — |
+| 2026-04-26 | 5.5 | Fixed LANGUAGE_CODE pl-pl→pl; added LANGUAGES, MODELTRANSLATION_DEFAULT_LANGUAGE, MODELTRANSLATION_FALLBACK_LANGUAGES; gettext_lazy import in settings | — | LANGUAGES rendered as polski/angielski in Docker Polish locale — correct behavior |
 
 ---
 

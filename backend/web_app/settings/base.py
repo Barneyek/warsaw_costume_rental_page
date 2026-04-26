@@ -65,7 +65,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'pl-pl'
+from django.utils.translation import gettext_lazy as _
+
+LANGUAGE_CODE = 'pl'        # must match a code in LANGUAGES exactly
+LANGUAGES = [
+    ('pl', _('Polish')),
+    ('en', _('English')),
+]
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'pl'
+MODELTRANSLATION_FALLBACK_LANGUAGES = ('pl',)
+
 TIME_ZONE = 'Europe/Warsaw'
 USE_I18N = True
 USE_TZ = True
