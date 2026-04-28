@@ -25,9 +25,6 @@ db.sqlite3-journal
 media/
 staticfiles/
 
-# Migrations — ZOSTAWIAMY w repo (ważne!)
-# !*/migrations/*.py
-
 # ==============================
 # Node / React / Vite
 # ==============================
@@ -66,7 +63,6 @@ Thumbs.db
 # ==============================
 # Logs & temporary
 # ==============================
-*.log
 logs/
 tmp/
 temp/
@@ -74,8 +70,14 @@ temp/
 # ==============================
 # OS
 # ==============================
-Thumbs.db
 Desktop.ini
 
-# Generated OpenAPI schema (regenerate via `manage.py spectacular`)
+# ==============================
+# Generated artifacts
+# ==============================
 schema.yaml
+
+# ==============================
+# Claude Code local settings
+# ==============================
+.claude/settings.local.json
