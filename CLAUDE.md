@@ -1,63 +1,146 @@
-# Projekt: Warsaw Costume Rental (Django + React)
+# Claude Code — Project Instructions for Warsaw Costume Rental
 
-**Cel:** Budowa skalowalnej aplikacji typu decoupled (Headless CMS) w celach edukacyjnych. Skupienie na czystej architekturze danych, asynchronicznej komunikacji i nowoczesnym UX.
-
-## 🏗️ Architektura Backend (Django + DRF)
-
-### 1. core (Klej systemowy)
-
-- **Zadanie:** Globalna konfiguracja i "handshake" z Reactem.
-- **Modele:** * `SiteSettings` (Singleton): Sociale, kontakt, globalny email.
-    - `GlobalAlert`: System komunikatów z polami valid_from i valid_until (automatyczny harmonogram wyświetlania) oraz is_active.
-- **API:** `/api/init/` – zwraca konfigurację strony przy starcie aplikacji frontendowej.
-
-### 2. catalogue (Serce systemu)
-
-- **Modele:**
-    - `Category` (name, slug, parent_category).
-    - `Tag` (proste etykiety, np. "Halloween").
-    - `Size` (predefiniowana lista rozmiarów).
-    - `Costume`
-        - Pola: name, description, slug, price, deposit, is_active, is_available.
-        - Relacje: `category` (FK), `tags` (M2M), **`sizes` (M2M)**.
-    - `CostumeImage`: Relacja 1: N do Costume.
-- **Media & Optymalizacja:** * Upload z UUID do folderów `costumes/%Y/%m/%d/`.
-    - Integracja z **Pillow / django-imagekit** – automatyczne generowanie lekkich miniatur (thumbnails) dla listy produktów.
-- **API:** `/api/costumes/` z obsługą `django-filter` (filtrowanie po kategorii, rozmiarze, tagu) oraz **paginacją** (PageNumberPagination).
-
-### 3. blog & pages (Content)
-
-- **blog:** Proste newsy/aktualności na stronę główną (`/api/news/`).
-- **pages:** Płaskie strony informacyjne (O nas, Regulamin). Pole `content` obsługuje **Markdown**, który React renderuje przez `react-markdown`.
-
-### 4. inquiry (System zapytań)
-
-- **Model w bazie:** `Inquiry` (customer_name, customer_email, message, status [new/read/replied], created_at).
-- **Relacja:** `items` (M2M do Costume) – aby wiedzieć, o jakie stroje pytał klient.
-- **Logic:** Endpoint `/api/inquiry/submit/` zapisuje dane w bazie, a następnie `services.py` wysyła powiadomienia e-mail.
+> This file is auto-loaded at the start of every Claude Code session in this repo.
+> It contains startup context + active rules.
 
 ---
 
-## 💻 Frontend (React + Vite)
+## 📂 What to read BEFORE starting any task
 
-- **Zarządzanie Stanem:** `Context API` + `localStorage` do obsługi schowka (wybrane stroje nie znikają po odświeżeniu strony).
-- **i18n:** Backend wysyła oba języki (np. `name_pl`, `name_en`), a React na podstawie swojego stanu decyduje, który klucz wyświetlić.
-- **Routing:** `react-router-dom` do nawigacji między katalogiem, newsami i podstronami.
+Always, in this order:
+1. **`docs/PROJECT-BRIEF.md`** — what we're building, architecture, 23-issue roadmap.
+2. **`docs/lessons-learned.md`** — anti-patterns, architectural decisions, gotchas (in Polish).
+3. **`docs/plans/_template.md`** — template for implementation plans (how to write plans for issues).
+4. The active issue on GitHub: `gh issue view <N>`.
 
 ---
 
-## 🛠️ Checklist Techniczny
+## 🏗️ Stack and project structure
 
-1. **CORS:** Konfiguracja `django-cors-headers` (zezwolenie na port Reacta).
-2. **i18n:** Implementacja `django-modeltranslation` dla modeli w bazie.
-3. **Admin:** Konfiguracja `TabularInline` dla zdjęć filter_horizontal dla rozmiarów i tagów, obsługa statusów zapytań.
-4. **Serializers:** Logika mapowania języków i serwowania URL-i do m
+**Backend:** Django + Django REST Framework, PostgreSQL, Docker Compose.
+**Frontend:** React + Vite + TypeScript, TanStack Query, Zod (from issue #14).
+**Type safety:** drf-spectacular generates OpenAPI → orval generates TS types + TanStack Query hooks + Zod schemas. No manual sync.
+**i18n:** `django-modeltranslation` (backend serves both languages: `name_pl`, `name_en`).
 
-## **📅 Kolejność Implementacji**
+**Repo structure:**
+```
+backend/
+├── src/                    # Django apps (Option B: dotted paths `src.X`)
+│   ├── core/               # SiteSettings, GlobalAlert
+│   ├── catalogue/          # Costume, Category, Tag, Size, CostumeImage
+│   ├── blog/
+│   ├── pages/
+│   └── inquiry/
+├── web_app/
+│   ├── settings/
+│   │   ├── base.py
+│   │   ├── dev.py
+│   │   └── test.py         # ⚠️ has its own load_dotenv()
+│   └── urls.py
+├── tests/
+└── manage.py               # ⚠️ has load_dotenv() at the very top
 
-1. Setup środowiska ← .env, requirements, struktura projektu, Git
-2. Django Models ← jak masz
-3. Django Admin ← jak masz
-4. API (DRF) ← jak masz + przynajmniej kilka testów pytest-django
-5. React ← jak masz
-6. (opcjonalnie) Docker Compose ← db + backend + frontend w jednej komendzie
+frontend/                   # React + Vite + TS (from issue #2)
+
+docs/
+├── PROJECT-BRIEF.md        # What we're building — briefing
+├── lessons-learned.md      # Anti-patterns, decisions, gotchas (PL)
+└── plans/
+    ├── _template.md        # Implementation plan template
+    └── GH-N-*.md           # One plan per issue
+```
+
+---
+
+## 🔧 Commands we use
+
+```bash
+# One-time setup
+docker compose up db -d                     # database
+pip install -r backend/requirements.txt     # dependencies
+
+# Daily work
+docker compose up                           # full stack
+cd backend && python manage.py runserver
+cd backend && python manage.py migrate
+cd backend && python manage.py spectacular --validate  # OpenAPI schema validation
+
+# Tests
+cd backend && pytest tests/ -v
+cd backend && pytest tests/ --cov=src --cov-report=term-missing
+
+# GitHub
+gh issue view <N>                           # read issue
+gh issue create --web                       # new issue (easiest in browser)
+gh pr create                                # new PR
+gh pr merge --squash --delete-branch        # merge PR
+```
+
+---
+
+## 📋 Active conventions
+
+### Git workflow (from issue #2 onward)
+- **Branch per issue:** `feature/GH-N-short-description` (or `fix/`, `chore/`, `docs/`).
+- **PR + squash merge** instead of direct commit to `main`.
+- **Conventional Commits** in every commit:
+  - `feat:` new functionality
+  - `fix:` bug fix
+  - `chore:` config, refactor without functional changes
+  - `docs:` documentation
+  - `test:` tests
+  - `refactor:` code refactor without functional changes
+
+**Exception:** Issue #1 was committed directly to `main` (project bootstrap, learning). From #2 onward: always branch + PR.
+
+### Django apps
+- **Full dotted paths** (`src.catalogue`, not `catalogue`) in `INSTALLED_APPS` and imports.
+- **Split settings:** `base.py` + `dev.py` + `test.py`. Default: `DJANGO_SETTINGS_MODULE=web_app.settings.dev`.
+- **`'modeltranslation'` MUST be the first entry in `INSTALLED_APPS`** (before `django.contrib.admin`).
+
+### Secrets and configuration
+- **`SECRET_KEY` always from `os.environ['SECRET_KEY']`** — no fallback, fail loud.
+- **`.env` NEVER committed.** `.env.example` always kept up to date in repo.
+- **Docker Compose:** every variable a container needs must be explicitly listed in `environment:` block.
+
+### Type safety (from #14)
+- **Zod schemas for API responses are NEVER hand-written** — generated by orval.
+- **`schema.yaml` is NEVER committed** — orval fetches live from `/api/schema/`.
+- **`SPECTACULAR_SETTINGS` must include `COMPONENT_SPLIT_REQUEST: True`**.
+
+---
+
+## ✅ Per-issue workflow
+
+1. **Issue on GitHub** — title + body with acceptance criteria.
+2. **Branch:** `git checkout -b feature/GH-N-...` (from #2).
+3. **Plan in `docs/plans/GH-N-*.md`** — generated against `_template.md`, every section filled.
+4. **Plan review** — self or discussed on claude.ai web.
+5. **Implementation** — step by step, validation per step, commits per subsection.
+6. **Self-review:** `gh pr create` → `gh pr view --web` → diff review.
+7. **Merge:** `gh pr merge --squash --delete-branch`.
+8. **Sync main:** `git checkout main && git pull`.
+9. **Close issue:** `gh issue close N --comment "Done — see docs/plans/GH-N-..."`.
+10. **Update lessons-learned** with new gotchas/decisions from plan post-mortem.
+
+---
+
+## 🚫 What NOT to do (top-level red flags)
+
+- ❌ **Don't commit `.env`** — secrets don't come back from git.
+- ❌ **Don't write Zod schemas manually** for API responses — orval generates them.
+- ❌ **Don't commit `schema.yaml`** — it's a generated artifact, in `.gitignore`.
+- ❌ **Don't skip validation steps in plans** — if Validate doesn't return Expected, STOP.
+- ❌ **Don't use `os.environ.get('SECRET_KEY', 'fallback')`** — fail loud, no defaults.
+- ❌ **Don't commit directly to `main`** (from #2) — always branch + PR.
+- ❌ **Don't use legacy `drf-spectacular` slash-style endpoints** — use `@extend_schema` decorator pattern.
+
+---
+
+## 🧠 Context for AI
+
+- **Solo dev project, learning project.** Goal: learn Django + React + AI-assisted workflow.
+- **User is a Vue.js Frontend Developer** — Django and React are new tech for him. Explanations in plain English, avoid jargon. Communicate in Polish when asked.
+- **AI-assisted workflow:** Issue → Plan → Implement → PR. Claude Code executes, user approves.
+- **Decisions get revised** when context changes — example: "no OpenAPI" → "drf-spectacular + orval" once TanStack Query was added to the stack.
+- **At the start of any task:** read context → ask if unclear → plan → implementation. Never start coding without a plan.

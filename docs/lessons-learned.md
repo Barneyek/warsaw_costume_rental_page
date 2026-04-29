@@ -1,119 +1,120 @@
 # Lessons Learned — Warsaw Costume Rental
 
-> **Purpose:** Zbiór lekcji, anti-patterns i wniosków z pracy nad projektem.
-> Aktualizowane po każdej sesji / zamknięciu issue (przez `/dev-compound` lub ręcznie).
->
-> **For Claude:** Przeczytaj ten plik zanim zaczniesz sesję. Unikaj wzorców oznaczonych jako ❌.
+> **Cel:** Zbiór lekcji, anti-patternów i wniosków z pracy nad projektem.
+> Aktualizowane po każdej sesji / zamknięciu issue.
 
 ---
 
 ## 📚 Spis treści
 
-- [Architecture decisions](#architecture-decisions)
+- [Konwencje projektu](#konwencje-projektu)
+- [Decyzje architektoniczne](#decyzje-architektoniczne)
 - [Django / Backend](#django--backend)
 - [React / Frontend](#react--frontend)
 - [DevOps / Tooling](#devops--tooling)
 - [AI Workflow](#ai-workflow)
-- [Anti-patterns (avoid)](#anti-patterns)
+- [Anti-patterns](#anti-patterns)
 
 ---
 
-## Architecture decisions
+## Konwencje projektu
 
-<!-- Format: ### Decision: <what>, Date: YYYY-MM-DD, Why, Alternatives considered, Trade-offs -->
+### 🌐 Język w plikach projektu
 
-### ✅ Decision: Full dotted paths `src.X` for Django apps
-- **Date:** 2026-04-XX
-- **Why:** Explicit imports, no ambiguity with nested modules, clear project boundary
-- **Alternatives:** Flat app paths (`catalogue` without `src.`)
-- **Trade-offs:** Trochę dłuższe ścieżki w `INSTALLED_APPS`, ale za to zero konfliktów nazw
+| Plik | Język | Powód |
+|------|-------|-------|
+| `README.md` | EN | Publiczna twarz repo |
+| Kod (zmienne, komentarze) | EN | Branżowy standard |
+| Commit messages | EN (`feat:`, `fix:`, ...) | Conventional Commits |
+| GitHub Issues (title + body) | EN |
+| `docs/plans/GH-N-*.md` | EN | Generowane przez Claude Code |
+| **`docs/lessons-learned.md`** | **PL** | Notatki dla siebie — myślę po polsku |
+| `CLAUDE.md` | EN | Konsumowane przez AI |
 
-### ✅ Decision: Zod for API types + runtime validation
-- **Date:** 2026-04-23
-- **Why:** Backend jest single source of truth dla kontraktu API. drf-spectacular auto-generuje OpenAPI schema z DRF serializers. orval czyta OpenAPI i generuje: (1) TS types, (2) hooki TanStack Query, (3) Zod schemas dla runtime validation. Żadnego ręcznego sync — zmiana w backendzie → regenerate → frontend dostaje update kontraktu.
-- **Alternatives considered:**
-  - Tylko Zod manual (prostsze, ale manual sync = źródło błędów przy 15-40 endpointach)
-  - drf-spectacular + openapi-typescript bez orval (brak runtime validation)
-- **Trade-offs:** +2h na setup orval config + CI step do regeneracji. Zysk: pełny type safety od DB po UI + portfolio-grade architecture.
-- **Replaces:** poprzednia decyzja "Zod only, no OpenAPI" (była podjęta przed dodaniem TanStack Query do stacku — zmieniony kontekst).
+### 🔧 Konwencje techniczne
 
-### ✅ Decision: orval reads OpenAPI schema live from backend (Option A)
-- **Date:** 2026-04-23
-- **Why:** Solo dev project — orval invoked manually via `npm run gen:api` on frontend after backend changes. Schema fetched live from `http://localhost:8000/api/schema/`. No need to commit a static schema artifact.
-- **Implication:** `schema.yaml` is NEVER committed. Added to `.gitignore`. The file is generated locally only for validation purposes (`python manage.py spectacular --validate`).
-- **Alternatives considered:**
-  - Option B: commit `schema.yaml` and have orval read from disk. Rejected — solo project, frontend always runs with backend, extra discipline overhead (must remember to regenerate before commit).
-- **Workflow:** Backend running (`runserver`) → on FE run `npm run gen:api` → orval hits `/api/schema/` → generates TS types + TanStack Query hooks + Zod schemas. The npm script will be set up in issue #14.
+- **Ścieżki Django apps:** pełne dotted paths (`src.catalogue`, nie `catalogue`).
+- **Settings:** split na `base.py` + `dev.py` + `test.py` w `backend/web_app/settings/`.
+- **Conventional Commits:** zawsze (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`).
+- **Branch flow (od issue #2):** branch per issue + PR + squash merge. Issue #1 historycznie poszło na `main`.
 
-### ✅ Decision: No OpenAPI exposure
-- **Date:** 2026-04-XX
-- **Why:** Deliberate architectural choice — used separately in another project
-- **Alternatives:** Auto-generate types from OpenAPI schema
-- **Trade-offs:** Ręczna synchronizacja Zod <> DRF, ale też większa kontrola
+---
+
+## Decyzje architektoniczne
+
+### ✅ Decyzja: Pełne ścieżki `src.X` dla Django apps
+- **Data:** -- (przed #1)
+- **Dlaczego:** Jednoznaczne importy, brak konfliktów nazw z bibliotekami, jasna granica projektowa.
+- **Alternatywy rozważone:** Płaskie ścieżki (`catalogue` zamiast `src.catalogue`).
+- **Kompromis:** Trochę dłuższe wpisy w `INSTALLED_APPS` — w zamian zero ambiguity.
+
+### ✅ Decyzja: drf-spectacular + orval + Zod (pełny type safety)
+- **Data:** 2026-04-23
+- **Dlaczego:** Backend = single source of truth dla kontraktu API. drf-spectacular auto-generuje OpenAPI schema z DRF serializers. orval czyta OpenAPI i generuje na frontendzie: (1) typy TS, (2) hooki TanStack Query, (3) Zod schemas dla runtime validation. Zero ręcznego sync — zmiana w backendzie → regeneracja → frontend dostaje update kontraktu.
+- **Alternatywy rozważone:**
+  - Tylko Zod ręcznie (prostsze, ale ręczny sync = źródło błędów przy 15-40 endpointach).
+  - drf-spectacular + openapi-typescript bez orval (brak runtime validation).
+- **Kompromis:** +2h na setup orval + krok regeneracji. Zysk: pełny type safety od bazy po UI
+- **Zastępuje:** Wcześniejszą decyzję "tylko Zod, no OpenAPI" (była podjęta przed dodaniem TanStack Query do stacku — zmienił się kontekst, decyzja zrewidowana).
+
+### ✅ Decyzja: orval pobiera schemę live z backendu (Opcja A)
+- **Data:** 2026-04-23
+- **Dlaczego:** Solo dev project — orval odpalany ręcznie przez `npm run gen:api` na frontendzie po zmianach w backendzie. Schema fetchowana live z `http://localhost:8000/api/schema/`. Nie ma potrzeby commitować statycznego artefaktu.
+- **Implikacja:** `schema.yaml` NIGDY nie jest commitowany. W `.gitignore`. Generowany lokalnie tylko do walidacji (`python manage.py spectacular --validate`).
+- **Alternatywy rozważone:**
+  - Opcja B: commit `schema.yaml` + orval czyta z dysku. Odrzucone — solo project, frontend i tak chodzi razem z backendem, dodatkowa dyscyplina (pamiętać o regeneracji przed commitem).
+- **Workflow:** Backend działa (`runserver`) → na FE `npm run gen:api` → orval uderza w `/api/schema/` → generuje typy TS + hooki TanStack Query + Zod schemas. Skrypt `npm run gen:api` powstanie w issue #14.
 
 ---
 
 ## Django / Backend
 
-<!-- Dodaj w trakcie pracy -->
+### ⚠️ Pułapka: `modeltranslation` MUSI być przed `django.contrib.admin` w `INSTALLED_APPS`
 
-_No entries yet._
+- **Odkryte:** Issue #1
+- **Objaw (cichy błąd):** Admin UI ładuje się, brak błędów, ale taby tłumaczeń nie pojawiają się po zarejestrowaniu `translation.py`.
+- **Dlaczego:** `django-modeltranslation` monkey-patchuje `django.contrib.admin` w czasie importu. Jak admin załaduje się pierwszy, patch nie zostanie aplikowany.
+- **Fix:** Pierwszy wpis w `INSTALLED_APPS` to zawsze `'modeltranslation'`.
+- **Weryfikacja:** Smoke test `test_modeltranslation_before_admin` pilnuje kolejności.
+
+### ⚠️ Pułapka: `LANGUAGE_CODE` MUSI dokładnie pasować do kodu z `LANGUAGES`
+
+- **Odkryte:** Issue #1
+- **Objaw (cichy błąd):** `LANGUAGE_CODE = 'pl-pl'` przy `LANGUAGES = [('pl', ...)]` powoduje że Django szuka kolumn `name_pl-pl`, których nie ma (istnieje tylko `name_pl`).
+- **Fix:** Używaj `'pl'` konsekwentnie. Kody locale w obu ustawieniach muszą zgadzać się znak w znak.
+- **Weryfikacja:** Smoke test `test_language_code_matches_languages`.
+
+### ⚠️ Pułapka: `load_dotenv()` musi być w `manage.py` ORAZ `settings/test.py`
+
+- **Odkryte:** Issue #1
+- **Dlaczego:** pytest NIE odpala `manage.py` — importuje moduł settings bezpośrednio (z `pytest.ini`). Bez `load_dotenv()` na górze `test.py` zmienne env nie są wczytywane i testy crashują na `SECRET_KEY = os.environ['SECRET_KEY']`.
+- **Fix:** `load_dotenv()` na samej górze `test.py`, ścieżka: `Path(__file__).resolve().parent.parent.parent.parent / '.env'`.
+
+### 📝 Notatka: `SPECTACULAR_SETTINGS` musi mieć `COMPONENT_SPLIT_REQUEST: True`
+
+- **Dlaczego:** Wymagane przez orval (frontend), żeby generował osobne typy `XxxRequest` (write) i `Xxx` (read) dla mutation endpointów. Bez tego write/read mają ten sam shape, co rozwala orval mutation hooks.
+- **Dodatkowo zalecane:** `SERVE_INCLUDE_SCHEMA: False` — zapobiega żeby `/api/schema/` opisywał sam siebie rekurencyjnie.
+
+### 📝 Notatka: drf-spectacular 0.29+ nie wypisuje nic przy sukcesie
+
+- **Odkryte:** Issue #1
+- **Zachowanie:** `python manage.py spectacular --validate` kończy z exit code 0 i pustym stdout gdy schema jest poprawna. NIE szukaj stringa "No issues found" — nowsze wersje są ciche.
+- **Weryfikacja:** Sprawdzaj exit code, nie tekst outputu.
 
 ---
 
 ## React / Frontend
 
-<!-- Dodaj w trakcie pracy -->
-
-_No entries yet._
+_Brak wpisów — będzie uzupełnione od issue #2._
 
 ---
 
 ## DevOps / Tooling
 
-### ✅ Git workflow
-- **Branch model:** trunk-based (`main` only) — learning project, solo dev
-- **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`)
-- **Issue → Plan → Implementation → Close** — każde issue ma plan w `docs/plans/GH-N-*.md`
+### ⚠️ Pułapka: Docker Compose musi jawnie przekazywać zmienne env do kontenerów
 
----
-
-## AI Workflow
-
-### ✅ Workflow: Issue → Plan → Implement → Close
-1. Create issue on GitHub (title + body with acceptance criteria)
-2. In Claude Code: generate plan in `docs/plans/GH-N-*.md` from issue
-3. Review plan (self or discuss with claude.ai web)
-4. Implement step-by-step, marking progress in plan
-5. Close issue with reference to plan
-
-### 📝 Prompt patterns that work
-- **Plan generation:** *"Read issue #N via `gh issue view N` and generate plan in docs/plans/GH-N-*.md following `docs/plans/_template.md`. Fill every section. Ultrathink."*
-- **Implementation:** *"Implement phase X from docs/plans/GH-N-*.md. Mark progress as you go. Do not skip validation steps."*
-
-### ⚠️ Prompt patterns to avoid
-_Dodaj w trakcie_
-
----
-
-## Anti-patterns
-
-<!-- Rzeczy których NIE robić w tym projekcie -->
-
-### ❌ Don't: Skip validation steps in plan
-**Why bad:** Validation per step jest po to, żeby AI (i Ty) wiedzieli że krok faktycznie zadziałał, a nie tylko został wykonany.
-**Instead do:** Zawsze uruchom `validate` command, porównaj z `expected` przed oznaczeniem `[x]`.
-
-### ❌ Don't: Commit `.env` or secrets
-**Why bad:** Secret w repo = public leak (nawet w private repo — może być przypadkiem pushnięte na publiczne).
-**Instead do:** `.env.example` w repo, real `.env` w `.gitignore`.
-
-### ❌ Don't: Write Zod schemas manually for API responses
-**Why bad:** Zod schemas dla API response są generowane przez orval z OpenAPI schema. Ręczne pisanie = duplikacja + desync z backendem.
-**Instead do:** Po zmianie serializera w backendzie uruchom pipeline regeneracji (backend emituje openapi.yaml → orval generuje FE). Zod schemas tworzone ręcznie TYLKO dla form validation (jeśli formularz ma inną walidację niż API response).
-
-### ❌ Don't: Commit `schema.yaml` to repo
-**Why bad:** Generated artifact, will get stale, creates merge conflicts in PRs that touch serializers. Source of truth = DRF code.
-**Instead do:** `schema.yaml` is in `.gitignore`. Frontend orval fetches from `/api/schema/` live.
-
-<!-- Dodawaj w trakcie w miarę wpadek -->
+- **Odkryte:** Issue #1
+- **Objaw:** Po przeniesieniu `SECRET_KEY` z hardcoded settings do `.env`, kontener crashuje przy starcie z `KeyError: 'SECRET_KEY'`.
+- **Dlaczego:** Docker Compose czyta `.env` do interpolacji `${VAR}` w YAMLu, ale NIE forwarduje automatycznie wszystkich zmiennych do kontenerów. Każda zmienna potrzebna w kontenerze musi być jawnie wymieniona pod `environment:`.
+- **Fix:** W `docker-compose.yml`, kontener `api` musi mieć:
+```yaml
