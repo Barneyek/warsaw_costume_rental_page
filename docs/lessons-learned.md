@@ -26,10 +26,13 @@
 | `README.md` | EN | Publiczna twarz repo |
 | Kod (zmienne, komentarze) | EN | Branżowy standard |
 | Commit messages | EN (`feat:`, `fix:`, ...) | Conventional Commits |
-| GitHub Issues (title + body) | EN |
-| `docs/plans/GH-N-*.md` | EN | Generowane przez Claude Code |
-| **`docs/lessons-learned.md`** | **PL** | Notatki dla siebie — myślę po polsku |
-| `CLAUDE.md` | EN | Konsumowane przez AI |
+| GitHub Issues (title + body) | EN | Spójność |
+| `CLAUDE.md` | EN | Konsumowane przez AI, branżowe terminy |
+| `docs/PROJECT-BRIEF.md` | EN | Spójność z CLAUDE.md |
+| **`docs/plans/GH-N-*.md`** | **PL** (treść) + EN (struktura, kod) | Notatki techniczne dla Ciebie. Sekcje, sub-sekcje i etykiety `Action`/`Validate`/`Expected`/`On failure` zostają EN — działają jak sygnały strukturalne. Treść opisowa, uzasadnienia, "Why" — po polsku. Fragmenty kodu, komendy terminala, nazwy techniczne (`branch`, `serializer`, `pull request`) zostają EN. |
+| **`docs/lessons-learned.md`** | **PL** | Twoje notatki, dla Ciebie |
+
+**Wyjątek historyczny:** `docs/plans/GH-1-django-project-setup.md` jest po angielsku — pierwszy plan, przed ustaleniem konwencji. Zostaje jak jest jako dokument historyczny.
 
 ### 🔧 Konwencje techniczne
 
