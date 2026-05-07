@@ -1,11 +1,11 @@
 # Plan: [GH-#24] Fix missing `timezone` import in catalogue/models.py
 
 **Issue:** https://github.com/Barneyek/warsaw_costume_rental_page/issues/24
-**Status:** 🟡 In Progress
+**Status:** 🟢 Done
 **Created:** 2026-05-07
 **Last updated:** 2026-05-07
 **Estimated effort:** S (< 1h)
-**Actual effort:** _wypełnij na końcu_
+**Actual effort:** ~20 min
 
 ---
 
@@ -90,18 +90,18 @@ def test_costume_image_can_be_saved_without_name_error():
 ### 5.3 Full test suite verification
 
 #### Step 5.3.1: Wszystkie testy nadal przechodzą
-- [ ] **Action:** `docker compose run --rm api pytest -v`
-- [ ] **Validate:** Czytaj output.
-- [ ] **Expected:** `31 passed, 0 failed` (30 starych + 1 nowy).
-- [ ] **On failure:** Jakikolwiek failed test → zatrzymaj się, przeanalizuj. Nie kontynuuj kroku 5.4.
+- [x] **Action:** `docker compose run --rm api pytest -v`
+- [x] **Validate:** Czytaj output.
+- [x] **Expected:** `31 passed, 0 failed` (30 starych + 1 nowy). ✅ Uzyskano dokładnie `31 passed in 2.44s`.
+- [x] **On failure:** N/A — sukces.
 
 ### 5.4 Schema validation
 
 #### Step 5.4.1: OpenAPI schema dalej waliduje czysto
-- [ ] **Action:** `docker compose run --rm api python manage.py spectacular --file schema.yaml --validate`
-- [ ] **Validate:** Exit code.
-- [ ] **Expected:** Exit code 0, brak warningów (drf-spectacular 0.29+ jest cichy przy sukcesie).
-- [ ] **On failure:** Czytaj treść błędu — prawdopodobnie nie wpływa na ten hotfix, ale jeśli jest related, zatrzymaj się.
+- [x] **Action:** `docker compose run --rm api python manage.py spectacular --file schema.yaml --validate`
+- [x] **Validate:** Exit code.
+- [x] **Expected:** Exit code 0, brak warningów (drf-spectacular 0.29+ jest cichy przy sukcesie). ✅ EXIT_CODE:0, brak outputu.
+- [x] **On failure:** N/A — sukces.
 
 ---
 
@@ -176,6 +176,8 @@ docker compose run --rm api python manage.py spectacular --file schema.yaml --va
 | 2026-05-07 | Plan v1 | Plan napisany | — | Pierwszy plan w polskim formacie |
 | 2026-05-07 | 5.1 | Dodano `from django.utils import timezone` w `catalogue/models.py` line 3. Zweryfikowano przez `manage.py shell` + bezpośrednie wywołanie `costume_image_upload_path` → zwraca `costumes/2026/05/07/<uuid>.jpg`. | Validate command z planu (`python -c "..."`) zawsze failuje z AppRegistryNotReady — zastosowano `manage.py shell -c` jako poprawną alternatywę. | commit: `fix(catalogue): add missing timezone import (BUG-1)` |
 | 2026-05-07 | 5.2 | Dodano test regresyjny `test_costume_image_can_be_saved_without_name_error` w `tests/catalogue/test_models.py`. Test wywołuje `costume_image_upload_path()` bezpośrednio (placeholder z planu miał błędne pola `alt`/`uploaded_at`, które nie istnieją w modelu). `1 passed in 0.17s`. | Placeholder w planie nieadekwatny do realnych pól modelu — dostosowano zgodnie z ⚠️ w planie. | commit: `test(catalogue): add regression test for CostumeImage save` |
+| 2026-05-07 | 5.3 | `pytest -v` → `31 passed, 0 failed`. | — | Dokładnie zgodnie z oczekiwaniem. |
+| 2026-05-07 | 5.4 | `python manage.py spectacular --validate` → exit 0, brak outputu (drf-spectacular 0.29+ jest cichy). | — | Schema nienaruszona. |
 
 ---
 
@@ -183,20 +185,27 @@ docker compose run --rm api python manage.py spectacular --file schema.yaml --va
 
 **Wszystkie poniższe MUSZĄ być spełnione przed zamknięciem issue:**
 
-- [ ] `from django.utils import timezone` jest obecny w `backend/src/catalogue/models.py`
-- [ ] Test `test_costume_image_can_be_saved_without_name_error` istnieje i przechodzi
-- [ ] Pełny `pytest -v` → **31 passed, 0 failed**
-- [ ] `python manage.py spectacular --validate` → exit 0
-- [ ] Conventional commit: `fix(catalogue): add missing timezone import (BUG-1)`
+- [x] `from django.utils import timezone` jest obecny w `backend/src/catalogue/models.py`
+- [x] Test `test_costume_image_can_be_saved_without_name_error` istnieje i przechodzi
+- [x] Pełny `pytest -v` → **31 passed, 0 failed**
+- [x] `python manage.py spectacular --validate` → exit 0
+- [x] Conventional commit: `fix(catalogue): add missing timezone import (BUG-1)`
 - [ ] Branch zmergowany do `main` przez squash merge
 - [ ] Issue #24 zamknięte: `gh issue close 24 --comment "Done — see docs/plans/GH-24-..."`
-- [ ] Plan zaktualizowany: `Status: 🟢 Done`, `Actual effort: <czas>`
+- [x] Plan zaktualizowany: `Status: 🟢 Done`, `Actual effort: ~20 min`
 
 ---
 
 ## 12. Post-mortem (wypełnij po zakończeniu)
 
-**What went well:** _wypełnij po zakończeniu_
-**What went wrong:** _wypełnij po zakończeniu_
-**Lessons learned:** _dodaj do `docs/lessons-learned.md`_
-**Follow-up issues:** _żadne nie planowane — fix izolowany_
+**What went well:** Fix był trywialny (1 linia). Commit + test w 2 oddzielnych commitach zgodnie z planem. Wszystkie 31 testów zielone, schema czysta.
+
+**What went wrong:**
+- Validate command z planu (`python -c "from src.catalogue.models import CostumeImage; print('import OK')"`) jest fundamentalnie broken — Django wymaga `setup()` przed importem modeli. Komenda failuje z `AppRegistryNotReady` niezależnie od tego czy fix jest aplikowany. Zastosowano `manage.py shell -c` jako poprawną alternatywę.
+- Test placeholder w 5.2.2 miał błędne pola (`alt`, `uploaded_at`) nieistniejące w modelu `CostumeImage`. Zdiagnozowano podczas implementacji (per ⚠️ w planie) i dostosowano: `timezone.now()` jest w `costume_image_upload_path`, nie jako `default=` pola, więc test wywołuje funkcję bezpośrednio.
+
+**Lessons learned:** _dodaj do `docs/lessons-learned.md`_ — patrz poniżej:
+1. Validate commands w planach powinny używać `manage.py shell -c` zamiast `python -c`, gdy importujemy modele Django.
+2. Przy pisaniu testów dla `upload_to` callables: funkcja jest wywoływana tylko gdy faktycznie zapisujemy plik, NIE przy `Model.objects.create()` bez pliku. Testować funkcję bezpośrednio lub zapisać plik z `ContentFile`.
+
+**Follow-up issues:** żadne — fix izolowany. GAP-1 do GAP-4 z audytu objęte issues #25–#28.
