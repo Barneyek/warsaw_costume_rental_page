@@ -134,3 +134,12 @@ _Brak wpisów — będzie uzupełnione od issue #2._
 - **Dlaczego:** Docker Compose czyta `.env` do interpolacji `${VAR}` w YAMLu, ale NIE forwarduje automatycznie wszystkich zmiennych do kontenerów. Każda zmienna potrzebna w kontenerze musi być jawnie wymieniona pod `environment:`.
 - **Fix:** W `docker-compose.yml`, kontener `api` musi mieć:
 ```yaml
+
+### 📝 Notatka: GitHub dzieli numerację issues + PR — nie zakładać kolejnych numerów dla issues
+
+- **Odkryte:** Issue #6 (hotfix `timezone` import), 2026-05-07
+- **Problem:** Założenie "kolejny issue dostanie numer X+1" jest błędne. PR-y zajmują numery z tej samej puli co issues. Issue planowane jako #24 w roadmapie w rzeczywistości otrzymało numer #6, bo między #1 a tym hotfixem powstało 5 PR-ów.
+- **Wpływ:** `Closes #24` w body PR nie zadziałało (issue #24 nie istniał). Hotfix issue #6 musiał być zamknięty ręcznie przez `gh issue close 6`.
+- **Fix:** W `PROJECT-BRIEF.md` używać symbolicznych nazw (`AUDIT-1`, `AUDIT-2`...) zamiast spekulować numery. Realny numer GitHub przyznawać przy tworzeniu issue, dopisać go obok nazwy symbolicznej w tabeli.
+- **Format zapisu:** `**AUDIT-1** [hotfix] ... — created as #6, fixed via PR #7`
+- **Konsekwencja dla planów:** W `docs/plans/GH-N-*.md` używać **realnego numeru GitHub** (po utworzeniu issue), nie planowanego z roadmapu.
