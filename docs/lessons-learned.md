@@ -68,6 +68,19 @@
   - Opcja B: commit `schema.yaml` + orval czyta z dysku. Odrzucone — solo project, frontend i tak chodzi razem z backendem, dodatkowa dyscyplina (pamiętać o regeneracji przed commitem).
 - **Workflow:** Backend działa (`runserver`) → na FE `npm run gen:api` → orval uderza w `/api/schema/` → generuje typy TS + hooki TanStack Query + Zod schemas. Skrypt `npm run gen:api` powstanie w issue #14.
 
+### ✅ Decyzja: TanStack Router zamiast react-router-dom
+- **Data:** 2026-04-23
+- **Dlaczego:**
+  - **Spójność stacku** — TanStack Query już jest w stacku, ten sam team / ta sama filozofia / native integration. Jedno spójne API zamiast dwóch różnych mechanizmów.
+  - **Type safety** — full type-safe routing (params, search params, loaders typed). Pasuje do reszty: orval generuje typowane hooki, Zod waliduje runtime, drf-spectacular kontraktuje API. **Type-safety od bazy po nawigację.**
+  - **Search params validated by schema** — costume catalog będzie miał filtry (`category`, `size`, `tag`) zapisane w URL. TanStack Router parsuje + waliduje search params przez schema, nie przez `string | undefined`.
+  - **Edukacyjnie:** uczę się nowoczesnych wzorców, nie legacy. react-router-dom mogę nauczyć się w 2h w każdej chwili — to commodity. TanStack Router daje wyróżnik.
+- **Alternatywy rozważone:**
+  - **react-router-dom:** klasyk, ogromna społeczność, więcej tutoriali. Odrzucone — nie pasuje do type-safe stacku jaki budujemy.
+- **Kompromis:** Mniej tutoriali / odpowiedzi na StackOverflow. Mniej AI muscle-memory. W praktyce — krzywa nauki +2-3 dni na początku.
+- **Implikacja:** w `frontend/src/routes/` będzie file-based routing, plugin `@tanstack/router-vite-plugin` w Vite config.
+- **Zastępuje:** wcześniejszą wzmiankę o `react-router-dom` w `PROJECT-BRIEF.md`.
+
 ---
 
 ## Django / Backend

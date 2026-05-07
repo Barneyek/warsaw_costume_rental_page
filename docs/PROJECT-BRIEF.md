@@ -42,10 +42,12 @@
 
 ## 💻 Frontend (React + Vite + TypeScript)
 
+- **Routing:** **TanStack Router** (file-based, type-safe). Replaces the originally planned `react-router-dom` — chosen for stack consistency with TanStack Query and end-to-end type safety. See `docs/lessons-learned.md` → "Decyzja: TanStack Router zamiast react-router-dom".
+- **Data fetching:** TanStack Query (React Query). Generated hooks via orval (from `/api/schema/`).
+- **Type safety pipeline:** drf-spectacular → orval → generated TS types + TanStack Query hooks + Zod schemas. No manual API type definitions.
 - **State management:** Context API + `localStorage` for "schowek" (wishlist — selected costumes persist across reloads).
-- **Type safety:** drf-spectacular → orval → generated TS types + TanStack Query hooks + Zod schemas. No manual API type definitions.
+- **Styling:** Tailwind CSS — utility-first, fast iteration, no naming overhead.
 - **i18n:** Backend sends both languages (`name_pl`, `name_en`); React decides which to display based on UI state.
-- **Routing:** `react-router-dom` for navigation between catalog, news, and static pages.
 
 ---
 
