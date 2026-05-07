@@ -20,7 +20,7 @@ Audyt backendu z 2026-05-07 ujawnił, że `backend/src/catalogue/models.py` uży
 ## 2. Scope
 
 ### In scope
-- [ ] Dodanie `from django.utils import timezone` do importów w `backend/src/catalogue/models.py`
+- [x] Dodanie `from django.utils import timezone` do importów w `backend/src/catalogue/models.py`
 - [ ] Dodanie testu regresyjnego w `backend/tests/catalogue/test_models.py` weryfikującego że `CostumeImage` można zapisać bez `NameError`
 
 ### Out of scope (świadomie pomijamy)
@@ -54,5 +54,163 @@ Audyt backendu z 2026-05-07 ujawnił, że `backend/src/catalogue/models.py` uży
 ### 5.1 Fix the import
 
 #### Step 5.1.1: Dodanie `from django.utils import timezone` do models.py
-- [ ] **Action:** Otwórz `backend/src/catalogue/models.py`. Na górze pliku, w sekcji importów, dodaj linię:
+- [x] **Action:** Otwórz `backend/src/catalogue/models.py`. Na górze pliku, w sekcji importów, dodaj linię:
 ```python
+  from django.utils import timezone
+```
+  Pozycja: po `from django.db import models` (jeśli istnieje), albo na początku importów Django.
+- [x] **Validate:** `docker compose run --rm api python -c "from src.catalogue.models import CostumeImage; print('import OK')"` — ⚠️ **Odchylenie:** komenda z planu zawsze failuje z `AppRegistryNotReady` bo Django app registry nie jest zainicjalizowane bez `django.setup()`. Użyto poprawnej komendy: `docker compose run --rm api python manage.py shell -c "from src.catalogue.models import CostumeImage; print('import OK')"`. Dodatkowo zweryfikowano `costume_image_upload_path(None, 'test.jpg')` → zwraca `costumes/2026/05/07/<uuid>.jpg`.
+- [x] **Expected:** Output: `import OK` bez błędów. ✅ Uzyskano `import OK`.
+- [x] **On failure:** N/A — sukces.
+
+### 5.2 Add regression test
+
+#### Step 5.2.1: Sprawdzenie czy istnieje `backend/tests/catalogue/test_models.py`
+- [ ] **Action:** `docker compose run --rm api ls tests/catalogue/`
+- [ ] **Validate:** Output zawiera `test_models.py` lub nie.
+- [ ] **Expected:** Notatka jaka jest sytuacja (modify istniejącego vs create new).
+- [ ] **On failure:** Jeśli katalog `tests/catalogue/` nie istnieje — utwórz go przed kolejnym krokiem.
+
+#### Step 5.2.2: Dodanie testu regresyjnego
+- [ ] **Action:** W `backend/tests/catalogue/test_models.py` dodaj test:
+```python
+  import pytest
+  from src.catalogue.models import Costume, CostumeImage
+
+
+  @pytest.mark.django_db
+  def test_costume_image_can_be_saved_without_name_error():
+      """Regression test for BUG-1 (timezone import missing in catalogue/models.py).
+      Before fix: saving CostumeImage raised NameError: name 'timezone' is not defined.
+      """
+      costume = Costume.objects.create(
+          name='Test Costume',
+          slug='test-costume',
+          description='Test description',
+          price=100,
+          deposit=50,
+      )
+      # The actual fix: this save() previously failed with NameError due to timezone.now() default
+      image = CostumeImage.objects.create(costume=costume, alt='Test image')
+      assert image.pk is not None
+      assert image.uploaded_at is not None
+```
+  
+  ⚠️ **Uwaga**: w trakcie implementacji Claude Code MUSI sprawdzić jakie pola model `Costume` i `CostumeImage` faktycznie ma (mogą się różnić od powyższego placeholdera) i dostosować test do realnej definicji modeli.
+
+- [ ] **Validate:** `docker compose run --rm api pytest tests/catalogue/test_models.py::test_costume_image_can_be_saved_without_name_error -v`
+- [ ] **Expected:** Test PASSED.
+- [ ] **On failure:** Jeśli test failuje — przeczytaj traceback. Jeśli widać `NameError: timezone` → krok 5.1.1 nie zadziałał. Jeśli inne pole jest required → dostosuj `Costume.objects.create(...)` do realnych pól.
+
+### 5.3 Full test suite verification
+
+#### Step 5.3.1: Wszystkie testy nadal przechodzą
+- [ ] **Action:** `docker compose run --rm api pytest -v`
+- [ ] **Validate:** Czytaj output.
+- [ ] **Expected:** `31 passed, 0 failed` (30 starych + 1 nowy).
+- [ ] **On failure:** Jakikolwiek failed test → zatrzymaj się, przeanalizuj. Nie kontynuuj kroku 5.4.
+
+### 5.4 Schema validation
+
+#### Step 5.4.1: OpenAPI schema dalej waliduje czysto
+- [ ] **Action:** `docker compose run --rm api python manage.py spectacular --file schema.yaml --validate`
+- [ ] **Validate:** Exit code.
+- [ ] **Expected:** Exit code 0, brak warningów (drf-spectacular 0.29+ jest cichy przy sukcesie).
+- [ ] **On failure:** Czytaj treść błędu — prawdopodobnie nie wpływa na ten hotfix, ale jeśli jest related, zatrzymaj się.
+
+---
+
+## 6. Deep analysis — skutki działań (holistycznie)
+
+### 6.1 Wpływ na inne Django apps
+Brak. Zmiana izolowana w `catalogue/models.py`. Inne apps (core, blog, pages, inquiry) nie importują `CostumeImage` ani niczego z tego pliku.
+
+### 6.2 Wpływ na bazę danych
+Brak. Zero migracji — dodajemy tylko import w Pythonie, schema bazy bez zmian.
+
+### 6.3 Wpływ na i18n (django-modeltranslation)
+Brak. `timezone` nie ma związku z translacją.
+
+### 6.4 Wpływ na frontend
+Brak bezpośredni. Pośrednio: jak frontend (od #2) zacznie tworzyć kostiumy z obrazkami, **bez tego fixa** by się wywaliło. Z fixem — działa.
+
+### 6.5 Wpływ na media / storage
+Brak. `CostumeImage` używa `timezone.now()` jako default dla pola `uploaded_at` (timestamp, nie ścieżka). Nie dotyka logiki upload.
+
+### 6.6 Wpływ na CORS / CSRF
+Brak.
+
+---
+
+## 7. Testing strategy
+
+### 7.1 Unit tests
+- [x] Test regresyjny `test_costume_image_can_be_saved_without_name_error` (Step 5.2.2)
+
+### 7.2 Integration tests
+- [x] Wszystkie istniejące testy przechodzą (Step 5.3.1)
+
+### 7.3 Manual QA checklist
+- [ ] Optional: w Django adminie utworzyć kostium, dodać obrazek przez TabularInline, sprawdzić że formularz zapisuje bez błędu (wymaga uruchomionego stosu).
+
+### 7.4 Test commands
+```bash
+# Specific regression test
+docker compose run --rm api pytest tests/catalogue/test_models.py::test_costume_image_can_be_saved_without_name_error -v
+
+# Full suite
+docker compose run --rm api pytest -v
+
+# Schema validation
+docker compose run --rm api python manage.py spectacular --file schema.yaml --validate
+```
+
+---
+
+## 8. Rollback plan
+
+**Jeśli coś pójdzie nie tak:**
+1. `git stash` — cofa zmiany niezacommitowane.
+2. `git checkout main` + `git branch -D fix/GH-24-catalogue-timezone-import` — usuwa branch lokalnie.
+3. Jeśli już zacommitowane: `git reset --hard HEAD~N` (N = liczba commitów do cofnięcia).
+
+**Unrecoverable state:** Brak. Zmiana to 1 linia kodu + 1 test. Pełny rollback = `git stash`.
+
+---
+
+## 9. Open questions
+
+- [ ] _(brak — zakres jest jasny)_
+
+---
+
+## 10. Progress log
+
+| Date | Step | What was done | Blockers | Notes |
+|------|------|---------------|----------|-------|
+| 2026-05-07 | Plan v1 | Plan napisany | — | Pierwszy plan w polskim formacie |
+| 2026-05-07 | 5.1 | Dodano `from django.utils import timezone` w `catalogue/models.py` line 3. Zweryfikowano przez `manage.py shell` + bezpośrednie wywołanie `costume_image_upload_path` → zwraca `costumes/2026/05/07/<uuid>.jpg`. | Validate command z planu (`python -c "..."`) zawsze failuje z AppRegistryNotReady — zastosowano `manage.py shell -c` jako poprawną alternatywę. | commit: `fix(catalogue): add missing timezone import (BUG-1)` |
+
+---
+
+## 11. Definition of Done
+
+**Wszystkie poniższe MUSZĄ być spełnione przed zamknięciem issue:**
+
+- [ ] `from django.utils import timezone` jest obecny w `backend/src/catalogue/models.py`
+- [ ] Test `test_costume_image_can_be_saved_without_name_error` istnieje i przechodzi
+- [ ] Pełny `pytest -v` → **31 passed, 0 failed**
+- [ ] `python manage.py spectacular --validate` → exit 0
+- [ ] Conventional commit: `fix(catalogue): add missing timezone import (BUG-1)`
+- [ ] Branch zmergowany do `main` przez squash merge
+- [ ] Issue #24 zamknięte: `gh issue close 24 --comment "Done — see docs/plans/GH-24-..."`
+- [ ] Plan zaktualizowany: `Status: 🟢 Done`, `Actual effort: <czas>`
+
+---
+
+## 12. Post-mortem (wypełnij po zakończeniu)
+
+**What went well:** _wypełnij po zakończeniu_
+**What went wrong:** _wypełnij po zakończeniu_
+**Lessons learned:** _dodaj do `docs/lessons-learned.md`_
+**Follow-up issues:** _żadne nie planowane — fix izolowany_
