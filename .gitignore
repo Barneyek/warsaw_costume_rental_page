@@ -81,3 +81,8 @@ schema.yaml
 # Claude Code local settings
 # ==============================
 .claude/settings.local.json
+
+# ==============================
+# Local audit reports (not committed)
+# ==============================
+docs/audits/
