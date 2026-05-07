@@ -18,7 +18,7 @@ Always, in this order:
 ## 🏗️ Stack and project structure
 
 **Backend:** Django + Django REST Framework, PostgreSQL, Docker Compose.
-**Frontend:** React + Vite + TypeScript, TanStack Query, Zod (from issue #14).
+**Frontend:** React + Vite + TypeScript, TanStack Query, **TanStack Router** (file-based routing), Tailwind CSS, Zod (from issue #14).
 **Type safety:** drf-spectacular generates OpenAPI → orval generates TS types + TanStack Query hooks + Zod schemas. No manual sync.
 **i18n:** `django-modeltranslation` (backend serves both languages: `name_pl`, `name_en`).
 
