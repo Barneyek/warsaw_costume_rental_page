@@ -116,3 +116,23 @@ class TestCostumeModel:
             price="80.00",
         )
         assert costume.deposit == 0
+
+
+# ── Regression tests ──────────────────────────────────────────────────────────
+
+
+def test_costume_image_can_be_saved_without_name_error():
+    """Regression for BUG-1: timezone not imported in catalogue/models.py.
+
+    costume_image_upload_path uses timezone.now() to build the upload path.
+    Before the fix this raised NameError: name 'timezone' is not defined.
+    CostumeImage.image is an ImageField with upload_to=costume_image_upload_path,
+    so the function is called on every image save. No DB access needed here —
+    we call the function directly to confirm timezone resolves correctly.
+    """
+    from src.catalogue.models import costume_image_upload_path
+
+    path = costume_image_upload_path(None, "costume.jpg")
+
+    assert path.startswith("costumes/")
+    assert path.endswith(".jpg")

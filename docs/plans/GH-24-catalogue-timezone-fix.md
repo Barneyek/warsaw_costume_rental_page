@@ -21,7 +21,7 @@ Audyt backendu z 2026-05-07 ujawnił, że `backend/src/catalogue/models.py` uży
 
 ### In scope
 - [x] Dodanie `from django.utils import timezone` do importów w `backend/src/catalogue/models.py`
-- [ ] Dodanie testu regresyjnego w `backend/tests/catalogue/test_models.py` weryfikującego że `CostumeImage` można zapisać bez `NameError`
+- [x] Dodanie testu regresyjnego w `backend/tests/catalogue/test_models.py` weryfikującego że `CostumeImage` można zapisać bez `NameError`
 
 ### Out of scope (świadomie pomijamy)
 - Inne znaleziska z audytu (GAP-1 do GAP-4) — *powód:* osobne issues #25-#27.
@@ -66,41 +66,26 @@ Audyt backendu z 2026-05-07 ujawnił, że `backend/src/catalogue/models.py` uży
 ### 5.2 Add regression test
 
 #### Step 5.2.1: Sprawdzenie czy istnieje `backend/tests/catalogue/test_models.py`
-- [ ] **Action:** `docker compose run --rm api ls tests/catalogue/`
-- [ ] **Validate:** Output zawiera `test_models.py` lub nie.
-- [ ] **Expected:** Notatka jaka jest sytuacja (modify istniejącego vs create new).
-- [ ] **On failure:** Jeśli katalog `tests/catalogue/` nie istnieje — utwórz go przed kolejnym krokiem.
+- [x] **Action:** `docker compose run --rm api ls tests/catalogue/`
+- [x] **Validate:** Output zawiera `test_models.py` lub nie.
+- [x] **Expected:** Notatka jaka jest sytuacja (modify istniejącego vs create new). ✅ Plik istnieje — `__init__.py  test_models.py`. Akcja: MODIFY istniejącego.
+- [x] **On failure:** N/A — sukces.
 
 #### Step 5.2.2: Dodanie testu regresyjnego
-- [ ] **Action:** W `backend/tests/catalogue/test_models.py` dodaj test:
+- [x] **Action:** W `backend/tests/catalogue/test_models.py` dodano test (dostosowany do realnych pól modeli — patrz ⚠️ poniżej). `CostumeImage` nie ma pól `alt` ani `uploaded_at` (placeholder w planie był błędny). `timezone.now()` jest wywoływane w funkcji `costume_image_upload_path`, nie jako `default=` pola — więc `CostumeImage.objects.create()` bez pliku nie uruchomi callable. Test wywołuje funkcję bezpośrednio:
 ```python
-  import pytest
-  from src.catalogue.models import Costume, CostumeImage
-
-
-  @pytest.mark.django_db
-  def test_costume_image_can_be_saved_without_name_error():
-      """Regression test for BUG-1 (timezone import missing in catalogue/models.py).
-      Before fix: saving CostumeImage raised NameError: name 'timezone' is not defined.
-      """
-      costume = Costume.objects.create(
-          name='Test Costume',
-          slug='test-costume',
-          description='Test description',
-          price=100,
-          deposit=50,
-      )
-      # The actual fix: this save() previously failed with NameError due to timezone.now() default
-      image = CostumeImage.objects.create(costume=costume, alt='Test image')
-      assert image.pk is not None
-      assert image.uploaded_at is not None
+def test_costume_image_can_be_saved_without_name_error():
+    from src.catalogue.models import costume_image_upload_path
+    path = costume_image_upload_path(None, "costume.jpg")
+    assert path.startswith("costumes/")
+    assert path.endswith(".jpg")
 ```
   
-  ⚠️ **Uwaga**: w trakcie implementacji Claude Code MUSI sprawdzić jakie pola model `Costume` i `CostumeImage` faktycznie ma (mogą się różnić od powyższego placeholdera) i dostosować test do realnej definicji modeli.
+  ⚠️ **Uwaga**: placeholder z planu (pola `alt`, `uploaded_at`) nie istnieje w modelu. Dostosowano test do realnej definicji modeli zgodnie z instrukcją w planie.
 
-- [ ] **Validate:** `docker compose run --rm api pytest tests/catalogue/test_models.py::test_costume_image_can_be_saved_without_name_error -v`
-- [ ] **Expected:** Test PASSED.
-- [ ] **On failure:** Jeśli test failuje — przeczytaj traceback. Jeśli widać `NameError: timezone` → krok 5.1.1 nie zadziałał. Jeśli inne pole jest required → dostosuj `Costume.objects.create(...)` do realnych pól.
+- [x] **Validate:** `docker compose run --rm api pytest tests/catalogue/test_models.py::test_costume_image_can_be_saved_without_name_error -v`
+- [x] **Expected:** Test PASSED. ✅ `1 passed in 0.17s`
+- [x] **On failure:** N/A — sukces.
 
 ### 5.3 Full test suite verification
 
@@ -190,6 +175,7 @@ docker compose run --rm api python manage.py spectacular --file schema.yaml --va
 |------|------|---------------|----------|-------|
 | 2026-05-07 | Plan v1 | Plan napisany | — | Pierwszy plan w polskim formacie |
 | 2026-05-07 | 5.1 | Dodano `from django.utils import timezone` w `catalogue/models.py` line 3. Zweryfikowano przez `manage.py shell` + bezpośrednie wywołanie `costume_image_upload_path` → zwraca `costumes/2026/05/07/<uuid>.jpg`. | Validate command z planu (`python -c "..."`) zawsze failuje z AppRegistryNotReady — zastosowano `manage.py shell -c` jako poprawną alternatywę. | commit: `fix(catalogue): add missing timezone import (BUG-1)` |
+| 2026-05-07 | 5.2 | Dodano test regresyjny `test_costume_image_can_be_saved_without_name_error` w `tests/catalogue/test_models.py`. Test wywołuje `costume_image_upload_path()` bezpośrednio (placeholder z planu miał błędne pola `alt`/`uploaded_at`, które nie istnieją w modelu). `1 passed in 0.17s`. | Placeholder w planie nieadekwatny do realnych pól modelu — dostosowano zgodnie z ⚠️ w planie. | commit: `test(catalogue): add regression test for CostumeImage save` |
 
 ---
 
