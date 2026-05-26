@@ -1,12 +1,12 @@
-# Plan: [GH-#24] Fix missing `timezone` import in catalogue/models.py
+# Plan: [GH-#6] Fix missing `timezone` import in catalogue/models.py
 
-**Issue:** https://github.com/Barneyek/warsaw_costume_rental_page/issues/24
+**Issue:** https://github.com/Barneyek/warsaw_costume_rental_page/issues/6
 **Status:** 🟢 Done
 **Created:** 2026-05-07
 **Last updated:** 2026-05-07
 **Estimated effort:** S (< 1h)
 **Actual effort:** ~20 min
-
+> **Numbering note:** Ten plan powstał gdy zakładaliśmy numer #24 (stąd historyczna nazwa brancha `fix/GH-24-...`). Faktyczny numer issue to **#6**. Po tym epizodzie przyjęliśmy konwencję AUDIT-N (patrz `lessons-learned.md`).
 ---
 
 ## 1. Context & Goal
@@ -24,7 +24,7 @@ Audyt backendu z 2026-05-07 ujawnił, że `backend/src/catalogue/models.py` uży
 - [x] Dodanie testu regresyjnego w `backend/tests/catalogue/test_models.py` weryfikującego że `CostumeImage` można zapisać bez `NameError`
 
 ### Out of scope (świadomie pomijamy)
-- Inne znaleziska z audytu (GAP-1 do GAP-4) — *powód:* osobne issues #25-#27.
+- Inne znaleziska z audytu (GAP-1 do GAP-4) — *powód:* osobne issues AUDIT-2/3/4
 - Refactor `models.py` poza dodaniem jednego importu — *powód:* zakres minimalny dla hotfixa.
 - Refaktor istniejących testów — *powód:* dodajemy nowy, nie ruszamy starych.
 
@@ -43,7 +43,7 @@ Audyt backendu z 2026-05-07 ujawnił, że `backend/src/catalogue/models.py` uży
 
 **Musi być gotowe wcześniej:**
 - [x] PR `chore: gitignore audits dir; refresh roadmap` zmergowany do main
-- [x] Issue #24 stworzone na GitHubie
+- [x] Issue #6 stworzone na GitHubie
 - [x] Branch `fix/GH-24-catalogue-timezone-import` utworzony z aktualnego main
 - [x] Docker stack uruchomiony (`docker compose up -d`)
 
@@ -191,7 +191,7 @@ docker compose run --rm api python manage.py spectacular --file schema.yaml --va
 - [x] `python manage.py spectacular --validate` → exit 0
 - [x] Conventional commit: `fix(catalogue): add missing timezone import (BUG-1)`
 - [ ] Branch zmergowany do `main` przez squash merge
-- [ ] Issue #24 zamknięte: `gh issue close 24 --comment "Done — see docs/plans/GH-24-..."`
+- [ ] Issue #6 zamknięte: `gh issue close 6 --comment "Done — see docs/plans/GH-6-..."`
 - [x] Plan zaktualizowany: `Status: 🟢 Done`, `Actual effort: ~20 min`
 
 ---
@@ -208,4 +208,4 @@ docker compose run --rm api python manage.py spectacular --file schema.yaml --va
 1. Validate commands w planach powinny używać `manage.py shell -c` zamiast `python -c`, gdy importujemy modele Django.
 2. Przy pisaniu testów dla `upload_to` callables: funkcja jest wywoływana tylko gdy faktycznie zapisujemy plik, NIE przy `Model.objects.create()` bez pliku. Testować funkcję bezpośrednio lub zapisać plik z `ContentFile`.
 
-**Follow-up issues:** żadne — fix izolowany. GAP-1 do GAP-4 z audytu objęte issues #25–#28.
+**Follow-up issues:** żadne — fix izolowany. GAP-1 do GAP-4 z audytu objęte AUDIT-2/3/4 + #22.
