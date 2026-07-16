@@ -48,7 +48,7 @@ class CostumeListSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(CostumeImageSerializer)
     def get_main_image(self, obj):
-        main = obj.images.filter(is_main=True).first()
+        main = next((img for img in obj.images.all() if img.is_main), None)
         if main:
             return CostumeImageSerializer(main, context=self.context).data
         return None
