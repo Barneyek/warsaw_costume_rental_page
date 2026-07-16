@@ -13,6 +13,7 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Kategoria'
         verbose_name_plural = 'Kategorie'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -24,6 +25,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Tag'
         verbose_name_plural = 'Tagi'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -35,6 +37,7 @@ class Size(models.Model):
     class Meta:
         verbose_name = 'Rozmiar'
         verbose_name_plural = 'Rozmiary'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -61,6 +64,7 @@ class Costume(models.Model):
     class Meta:
         verbose_name = 'Kostium'
         verbose_name_plural = 'Kostiumy'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -74,6 +78,7 @@ class CostumeImage(models.Model):
     class Meta:
         verbose_name = 'Zdjęcie kostiumu'
         verbose_name_plural = 'Zdjęcia kostiumów'
+        ordering = ['-is_main', 'id']
 
     def __str__(self):
         return f'Zdjęcie – {self.costume.name}'
